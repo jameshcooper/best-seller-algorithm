@@ -2,12 +2,12 @@ use DataWarehouse;
 
 declare @shop_finish date = dateadd(dd, -1, getdate());
 
-declare @shop_start date = dateadd(dd, -183, getdate());
+declare @shop_start date = dateadd(dd, -183, @shop_finish);
 
 select
     cs.*,
-    ROW_NUMBER() over (
-        PARTITION by cs.Customer_ID
+    row_number() over (
+        partition by cs.Customer_ID
         order by
             cs.tp desc,
             cs.ts desc
@@ -17,8 +17,8 @@ from
         select
             th.Customer_ID,
             ti.SKU,
-            count(distinct th.Transaction_ID) 'tp', --how many times purchased
-            sum(ti.Item_Quantity) 'ip', --how many items purchased
+            count(distinct th.Transaction_ID) 'tp', --times purchased
+            sum(ti.Item_Quantity) 'ip', --items purchased
             sum(ti.Item_Revenue) 'ts' --total spend
         from
             Transaction_Header th with (nolock)
@@ -90,8 +90,8 @@ from
             ) 'CLOTHING_QUALITY_STANDARD',
             sum(
                 case
-                    when i.SubCategory1 = 'Dog Clothing Essential Jacket'
-                    or i.SubCategory1 = 'Dog Clothing Essential Trousers' then 1
+                    when i.SubCategory1 = 'Clothing Essential Jacket'
+                    or i.SubCategory1 = 'Clothing Essential Trousers' then 1
                     else 0
                 end
             ) 'CLOTHING_QUALITY_ESSENTIAL'
